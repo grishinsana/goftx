@@ -23,13 +23,13 @@ func main() {
 
 	// subscribeToMarkets(ctx, client)
 
-	// subscribeToTrades(ctx, client)
+	subscribeToTrades(ctx, client)
 
-	subscribeToOrderBooks(ctx, client)
+	// subscribeToOrderBooks(ctx, client)
 
 	<-sigs
 	cancel()
-	time.Sleep(time.Second)
+	time.Sleep(5 * time.Second)
 }
 
 func subscribeToTickers(ctx context.Context, client *goftx.Client) {
@@ -75,7 +75,7 @@ func subscribeToMarkets(ctx context.Context, client *goftx.Client) {
 }
 
 func subscribeToTrades(ctx context.Context, client *goftx.Client) {
-	data, err := client.Stream.SubscribeToTrades(ctx, "BTC/USDT")
+	data, err := client.Stream.SubscribeToTrades(ctx, "BTC-PERP")
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}
@@ -110,7 +110,7 @@ func subscribeToOrderBooks(ctx context.Context, client *goftx.Client) {
 				if !ok {
 					return
 				}
-				log.Printf("%+v\n", msg)
+				log.Printf("------ %+v\n", msg)
 			}
 		}
 	}()

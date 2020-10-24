@@ -7,10 +7,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"io/ioutil"
 	"net/http"
 	"reflect"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -45,6 +47,7 @@ type Client struct {
 	apiKey         string
 	secret         string
 	serverTimeDiff time.Duration
+	SubAccounts
 	Markets
 	Account
 	Stream
@@ -59,10 +62,13 @@ func New(opts ...Option) *Client {
 		opt(client)
 	}
 
+	client.SubAccounts = SubAccounts{client: client}
 	client.Markets = Markets{client: client}
 	client.Account = Account{client: client}
 	client.Stream = Stream{
-		client:                 client,
+		mu:                     &sync.Mutex{},
+		url:                    wsUrl,
+		dialer:                 websocket.DefaultDialer,
 		wsReconnectionCount:    reconnectCount,
 		wsReconnectionInterval: reconnectInterval,
 	}
