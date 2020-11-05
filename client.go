@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -15,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 )
 
@@ -51,6 +51,7 @@ type Client struct {
 	Markets
 	Account
 	Stream
+	Orders
 }
 
 func New(opts ...Option) *Client {
@@ -65,6 +66,7 @@ func New(opts ...Option) *Client {
 	client.SubAccounts = SubAccounts{client: client}
 	client.Markets = Markets{client: client}
 	client.Account = Account{client: client}
+	client.Orders = Orders{client: client}
 	client.Stream = Stream{
 		mu:                     &sync.Mutex{},
 		url:                    wsUrl,

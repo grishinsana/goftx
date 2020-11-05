@@ -49,6 +49,36 @@ type TransferStatus string
 
 const Complete = TransferStatus("complete")
 
+type OrderType string
+
+const (
+	LimitOrder  = OrderType("limit")
+	MarketOrder = OrderType("market")
+)
+
+type Side string
+
+const (
+	Sell = Side("sell")
+	Buy  = Side("buy")
+)
+
+type Status string
+
+const (
+	New    = Status("new")
+	Open   = Status("open")
+	Closed = Status("closed")
+)
+
+type TriggerOrderType string
+
+const (
+	Stop         = TriggerOrderType("stop")
+	TrailingStop = TriggerOrderType("trailing_stop")
+	TakeProfit   = TriggerOrderType("take_profit")
+)
+
 type FTXTime struct {
 	Time time.Time
 }
