@@ -81,3 +81,16 @@ type Ticker struct {
 	Last    decimal.Decimal `json:"last"`
 	Time    FTXTime         `json:"time"`
 }
+
+type GetTradesParams struct {
+	Limit     *int `json:"limit"`
+	StartTime *int `json:"start_time"`
+	EndTime   *int `json:"end_time"`
+}
+
+type GetHistoricalPricesParams struct {
+	Resolution Resolution `json:"resolution"`
+	Limit      *int       `json:"limit"`
+	StartTime  *int       `json:"start_time"`
+	EndTime    *int       `json:"end_time"`
+}

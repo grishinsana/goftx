@@ -98,13 +98,7 @@ func (m *Markets) GetOrderBook(marketName string, depth *int) (*models.OrderBook
 	return &result, nil
 }
 
-type GetTradesParams struct {
-	Limit     *int `json:"limit"`
-	StartTime *int `json:"start_time"`
-	EndTime   *int `json:"end_time"`
-}
-
-func (m *Markets) GetTrades(marketName string, params *GetTradesParams) ([]*models.Trade, error) {
+func (m *Markets) GetTrades(marketName string, params *models.GetTradesParams) ([]*models.Trade, error) {
 	queryParams, err := PrepareQueryParams(params)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -134,14 +128,7 @@ func (m *Markets) GetTrades(marketName string, params *GetTradesParams) ([]*mode
 	return result, nil
 }
 
-type GetHistoricalPricesParams struct {
-	Resolution models.Resolution `json:"resolution"`
-	Limit      *int              `json:"limit"`
-	StartTime  *int              `json:"start_time"`
-	EndTime    *int              `json:"end_time"`
-}
-
-func (m *Markets) GetHistoricalPrices(marketName string, params *GetHistoricalPricesParams) ([]*models.HistoricalPrice, error) {
+func (m *Markets) GetHistoricalPrices(marketName string, params *models.GetHistoricalPricesParams) ([]*models.HistoricalPrice, error) {
 	queryParams, err := PrepareQueryParams(params)
 	if err != nil {
 		return nil, errors.WithStack(err)

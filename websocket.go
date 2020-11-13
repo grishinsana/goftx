@@ -28,6 +28,7 @@ type Stream struct {
 	dialer                 *websocket.Dialer
 	wsReconnectionCount    int
 	wsReconnectionInterval time.Duration
+	isDebugMode            bool
 }
 
 func (s *Stream) SetReconnectionCount(count int) {
@@ -37,11 +38,25 @@ func (s *Stream) SetReconnectionCount(count int) {
 	s.wsReconnectionCount = count
 }
 
+func (s *Stream) SetDebugMode(isDebugMode bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.isDebugMode = isDebugMode
+}
+
 func (s *Stream) SetReconnectionInterval(interval time.Duration) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	s.wsReconnectionInterval = interval
+}
+
+func (s *Stream) printf(format string, v ...interface{}) {
+	if !s.isDebugMode {
+		return
+	}
+	log.Printf(format+"\n", v)
 }
 
 func (s *Stream) connect(requests ...models.WSRequest) (*websocket.Conn, error) {
@@ -50,15 +65,22 @@ func (s *Stream) connect(requests ...models.WSRequest) (*websocket.Conn, error) 
 		return nil, errors.WithStack(err)
 	}
 
-	log.Printf("connected to %v", s.url)
+	s.printf("connected to %v", s.url)
 
 	err = s.subscribe(conn, requests)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
+	lastPong := time.Now()
 	conn.SetPongHandler(func(msg string) error {
-		log.Printf("PONG")
+		lastPong = time.Now()
+		if time.Now().Sub(lastPong) > websocketTimeout {
+			// TODO handle this case
+			s.printf("PONG response time has been exceeded")
+		} else {
+			s.printf("PONG")
+		}
 		return nil
 	})
 
@@ -82,26 +104,21 @@ func (s *Stream) serve(ctx context.Context, requests ...models.WSRequest) (chan 
 				message := &models.WsResponse{}
 				err = conn.ReadJSON(&message)
 				if err != nil {
-					log.Printf("read msg: %v\n", err)
+					s.printf("read msg: %v", err)
 					if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
 						return
 					}
 					conn, err = s.reconnect(ctx, requests)
 					if err != nil {
-						log.Printf("reconnect: %+v\n", err)
+						s.printf("reconnect: %+v", err)
 						return
 					}
 					continue
 				}
 
-				log.Println("message: ", message.Market, message.Channel, message.Type, message.Code, message.Message)
-				log.Printf("data: %s \n", string(message.Data))
-
 				switch message.Type {
-				case models.Subscribed:
+				case models.Subscribed, models.UnSubscribed:
 					continue
-				case models.UnSubscribed:
-					conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 				}
 
 				var response interface{}
@@ -125,7 +142,7 @@ func (s *Stream) serve(ctx context.Context, requests ...models.WSRequest) (chan 
 			case <-ctx.Done():
 				err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 				if err != nil {
-					log.Printf("write close msg: %v\n", err)
+					s.printf("write close msg: %v", err)
 					return
 				}
 				select {
@@ -137,10 +154,10 @@ func (s *Stream) serve(ctx context.Context, requests ...models.WSRequest) (chan 
 			case <-doneC:
 				return
 			case <-time.After(pingPeriod):
-				log.Printf("PING")
+				s.printf("PING")
 				err := conn.WriteControl(websocket.PingMessage, []byte(`{"op": "pong"}`), time.Now().Add(10*time.Second))
 				if err != nil && err != websocket.ErrCloseSent {
-					log.Printf("write ping: %v", err)
+					s.printf("write ping: %v", err)
 				}
 			}
 		}
@@ -253,7 +270,7 @@ func (s *Stream) SubscribeToMarkets(ctx context.Context) (chan *models.Market, e
 				}
 				err = json.Unmarshal(data, &markets)
 				if err != nil {
-					log.Printf("unmarshal: %+v\n", err)
+					s.printf("unmarshal markets: %+v", err)
 					return
 				}
 				for _, market := range markets.Data {

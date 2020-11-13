@@ -18,6 +18,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	client := goftx.New()
+	client.Stream.SetDebugMode(true)
 
 	// subscribeToTickers(ctx, client)
 
