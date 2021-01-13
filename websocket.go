@@ -2,7 +2,11 @@ package goftx
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -23,6 +27,9 @@ const (
 )
 
 type Stream struct {
+	apiKey                 string
+	secret                 string
+	subAccount             string
 	mu                     *sync.Mutex
 	url                    string
 	dialer                 *websocket.Dialer
@@ -65,6 +72,12 @@ func (s *Stream) connect(requests ...models.WSRequest) (*websocket.Conn, error) 
 		return nil, errors.WithStack(err)
 	}
 
+	err = s.auth(conn)
+
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
 	s.printf("connected to %v", s.url)
 
 	err = s.subscribe(conn, requests)
@@ -85,6 +98,31 @@ func (s *Stream) connect(requests ...models.WSRequest) (*websocket.Conn, error) 
 	})
 
 	return conn, nil
+}
+
+// Credit to https://github.com/go-numb/go-ftx
+func (s *Stream) auth(conn *websocket.Conn) error {
+	if s.apiKey == "" {
+		return nil
+	}
+
+	msec := time.Now().UTC().UnixNano() / int64(time.Millisecond)
+
+	mac := hmac.New(sha256.New, []byte(s.secret))
+	mac.Write([]byte(fmt.Sprintf("%dwebsocket_login", msec)))
+	args := map[string]interface{}{
+		"key":  s.apiKey,
+		"sign": hex.EncodeToString(mac.Sum(nil)),
+		"time": msec,
+	}
+	if s.subAccount != "" {
+		args["subaccount"] = s.subAccount
+	}
+
+	return conn.WriteJSON(models.WSRequest{
+		Op:   models.Login,
+		Args: args,
+	})
 }
 
 func (s *Stream) serve(ctx context.Context, requests ...models.WSRequest) (chan interface{}, error) {
@@ -129,6 +167,10 @@ func (s *Stream) serve(ctx context.Context, requests ...models.WSRequest) (chan 
 					response, err = message.MapToTradesResponse()
 				case models.OrderBookChannel:
 					response, err = message.MapToOrderBookResponse()
+				case models.OrdersChannel:
+					response, err = message.MapToOrderResponse()
+				case models.FillsChannel:
+					response, err = message.MapToFillResponse()
 				case models.MarketsChannel:
 					response = message.Data
 				}
@@ -197,6 +239,70 @@ func (s *Stream) subscribe(conn *websocket.Conn, requests []models.WSRequest) er
 		}
 	}
 	return nil
+}
+
+func (s *Stream) SubscribeToFills(ctx context.Context) (chan *models.FillResponse, error) {
+	eventsC, err := s.serve(ctx, models.WSRequest{
+		Channel: models.FillsChannel,
+		Op:      models.Subscribe,
+	})
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	fillsC := make(chan *models.FillResponse, 1)
+	go func() {
+		defer close(fillsC)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case event, ok := <-eventsC:
+				if !ok {
+					return
+				}
+				fill, ok := event.(*models.FillResponse)
+				if !ok {
+					return
+				}
+				fillsC <- fill
+			}
+		}
+	}()
+
+	return fillsC, nil
+}
+
+func (s *Stream) SubscribeToOrders(ctx context.Context) (chan *models.OrderResponse, error) {
+	eventsC, err := s.serve(ctx, models.WSRequest{
+		Channel: models.OrdersChannel,
+		Op:      models.Subscribe,
+	})
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	ordersC := make(chan *models.OrderResponse, 1)
+	go func() {
+		defer close(ordersC)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case event, ok := <-eventsC:
+				if !ok {
+					return
+				}
+				order, ok := event.(*models.OrderResponse)
+				if !ok {
+					return
+				}
+				ordersC <- order
+			}
+		}
+	}()
+
+	return ordersC, nil
 }
 
 func (s *Stream) SubscribeToTickers(ctx context.Context, symbols ...string) (chan *models.TickerResponse, error) {

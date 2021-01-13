@@ -74,6 +74,9 @@ func New(opts ...Option) *Client {
 	client.Account = Account{client: client}
 	client.Orders = Orders{client: client}
 	client.Stream = Stream{
+		apiKey:                 client.apiKey,
+		secret:                 client.secret,
+		subAccount:             client.subAccount,
 		mu:                     &sync.Mutex{},
 		url:                    wsUrl,
 		dialer:                 websocket.DefaultDialer,
