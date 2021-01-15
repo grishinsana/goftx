@@ -20,6 +20,8 @@ func main() {
 	client := goftx.New(
 		goftx.WithAuth("API-KEY", "API-SECRET", "API-SUBACCOUNT"),
 	)
+
+	client.Stream.SetStreamTimeout(10 * time.Second)
 	client.Stream.SetDebugMode(true)
 
 	// subscribeToTickers(ctx, client)

@@ -40,6 +40,8 @@ func WithAuth(key, secret string, subAccount ...string) Option {
 	return func(c *Client) {
 		c.apiKey = key
 		c.secret = secret
+		c.Stream.apiKey = key
+		c.Stream.secret = secret
 
 		if len(subAccount) > 0 {
 			c.subAccount = subAccount[0]
@@ -82,6 +84,7 @@ func New(opts ...Option) *Client {
 		dialer:                 websocket.DefaultDialer,
 		wsReconnectionCount:    reconnectCount,
 		wsReconnectionInterval: reconnectInterval,
+		wsTimeout:              streamTimeout,
 	}
 
 	return client

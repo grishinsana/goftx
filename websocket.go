@@ -20,10 +20,10 @@ import (
 const (
 	wsUrl = "wss://ftx.com/ws/"
 
-	websocketTimeout  = time.Second * 60
-	pingPeriod        = (websocketTimeout * 9) / 10
+	writeWait         = time.Second * 10
 	reconnectCount    = int(10)
 	reconnectInterval = time.Second
+	streamTimeout     = time.Second * 60
 )
 
 type Stream struct {
@@ -35,7 +35,15 @@ type Stream struct {
 	dialer                 *websocket.Dialer
 	wsReconnectionCount    int
 	wsReconnectionInterval time.Duration
+	wsTimeout              time.Duration
 	isDebugMode            bool
+}
+
+func (s *Stream) SetStreamTimeout(timeout time.Duration) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.wsTimeout = timeout
 }
 
 func (s *Stream) SetReconnectionCount(count int) {
@@ -85,44 +93,13 @@ func (s *Stream) connect(requests ...models.WSRequest) (*websocket.Conn, error) 
 		return nil, errors.WithStack(err)
 	}
 
-	lastPong := time.Now()
 	conn.SetPongHandler(func(msg string) error {
-		lastPong = time.Now()
-		if time.Now().Sub(lastPong) > websocketTimeout {
-			// TODO handle this case
-			s.printf("PONG response time has been exceeded")
-		} else {
-			s.printf("PONG")
-		}
+		s.printf("PONG")
+		conn.SetReadDeadline(time.Now().Add(s.wsTimeout))
 		return nil
 	})
 
 	return conn, nil
-}
-
-// Credit to https://github.com/go-numb/go-ftx
-func (s *Stream) auth(conn *websocket.Conn) error {
-	if s.apiKey == "" {
-		return nil
-	}
-
-	msec := time.Now().UTC().UnixNano() / int64(time.Millisecond)
-
-	mac := hmac.New(sha256.New, []byte(s.secret))
-	mac.Write([]byte(fmt.Sprintf("%dwebsocket_login", msec)))
-	args := map[string]interface{}{
-		"key":  s.apiKey,
-		"sign": hex.EncodeToString(mac.Sum(nil)),
-		"time": msec,
-	}
-	if s.subAccount != "" {
-		args["subaccount"] = s.subAccount
-	}
-
-	return conn.WriteJSON(models.WSRequest{
-		Op:   models.Login,
-		Args: args,
-	})
 }
 
 func (s *Stream) serve(ctx context.Context, requests ...models.WSRequest) (chan interface{}, error) {
@@ -195,10 +172,10 @@ func (s *Stream) serve(ctx context.Context, requests ...models.WSRequest) (chan 
 				}
 			case <-doneC:
 				return
-			case <-time.After(pingPeriod):
+			case <-time.After((s.wsTimeout * 9) / 10):
 				s.printf("PING")
-				err := conn.WriteControl(websocket.PingMessage, []byte(`{"op": "pong"}`), time.Now().Add(10*time.Second))
-				if err != nil && err != websocket.ErrCloseSent {
+				conn.SetWriteDeadline(time.Now().Add(writeWait))
+				if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 					s.printf("write ping: %v", err)
 				}
 			}
@@ -206,6 +183,32 @@ func (s *Stream) serve(ctx context.Context, requests ...models.WSRequest) (chan 
 	}()
 
 	return eventsC, nil
+}
+
+// Credit to https://github.com/go-numb/go-ftx
+func (s *Stream) auth(conn *websocket.Conn) error {
+	if s.apiKey == "" {
+		return nil
+	}
+
+	s.printf("Authenticate websocket connection")
+	msec := time.Now().UTC().UnixNano() / int64(time.Millisecond)
+
+	mac := hmac.New(sha256.New, []byte(s.secret))
+	mac.Write([]byte(fmt.Sprintf("%dwebsocket_login", msec)))
+	args := map[string]interface{}{
+		"key":  s.apiKey,
+		"sign": hex.EncodeToString(mac.Sum(nil)),
+		"time": msec,
+	}
+	if s.subAccount != "" {
+		args["subaccount"] = s.subAccount
+	}
+
+	return conn.WriteJSON(models.WSRequest{
+		Op:   models.Login,
+		Args: args,
+	})
 }
 
 func (s *Stream) reconnect(ctx context.Context, requests []models.WSRequest) (*websocket.Conn, error) {
@@ -295,6 +298,7 @@ func (s *Stream) SubscribeToOrders(ctx context.Context) (chan *models.OrderRespo
 				}
 				order, ok := event.(*models.OrderResponse)
 				if !ok {
+					fmt.Println(event.(json.RawMessage))
 					return
 				}
 				ordersC <- order
