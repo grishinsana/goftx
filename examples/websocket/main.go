@@ -17,14 +17,20 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	client := goftx.New()
+	client := goftx.New(
+		goftx.WithAuth("API-KEY", "API-SECRET", "API-SUBACCOUNT"),
+	)
+
+	client.Stream.SetStreamTimeout(10 * time.Second)
 	client.Stream.SetDebugMode(true)
 
 	// subscribeToTickers(ctx, client)
 
 	// subscribeToMarkets(ctx, client)
 
-	subscribeToTrades(ctx, client)
+	subscribeToFills(ctx, client)
+
+	subscribeToOrders(ctx, client)
 
 	// subscribeToOrderBooks(ctx, client)
 
@@ -77,6 +83,48 @@ func subscribeToMarkets(ctx context.Context, client *goftx.Client) {
 
 func subscribeToTrades(ctx context.Context, client *goftx.Client) {
 	data, err := client.Stream.SubscribeToTrades(ctx, "BTC-PERP")
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case msg, ok := <-data:
+				if !ok {
+					return
+				}
+				log.Printf("%+v\n", msg)
+			}
+		}
+	}()
+}
+
+func subscribeToFills(ctx context.Context, client *goftx.Client) {
+	data, err := client.Stream.SubscribeToFills(ctx)
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case msg, ok := <-data:
+				if !ok {
+					return
+				}
+				log.Printf("%+v\n", msg)
+			}
+		}
+	}()
+}
+
+func subscribeToOrders(ctx context.Context, client *goftx.Client) {
+	data, err := client.Stream.SubscribeToOrders(ctx)
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}

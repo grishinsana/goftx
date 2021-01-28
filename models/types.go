@@ -25,6 +25,8 @@ const (
 	TradesChannel    = Channel("trades")
 	TickerChannel    = Channel("ticker")
 	MarketsChannel   = Channel("markets")
+	FillsChannel     = Channel("fills")
+	OrdersChannel    = Channel("orders")
 )
 
 type Operation string
@@ -32,6 +34,7 @@ type Operation string
 const (
 	Subscribe   = Operation("subscribe")
 	UnSubscribe = Operation("unsubscribe")
+	Login       = Operation("login")
 )
 
 type ResponseType string
@@ -85,8 +88,19 @@ type FTXTime struct {
 
 func (f *FTXTime) UnmarshalJSON(data []byte) error {
 	var t float64
-	if err := json.Unmarshal(data, &t); err != nil {
-		return err
+	err := json.Unmarshal(data, &t)
+
+	// FTX uses ISO format sometimes so we have to detect and handle that differently.
+	if err != nil {
+		var iso time.Time
+		errIso := json.Unmarshal(data, &iso)
+
+		if errIso != nil {
+			return err
+		}
+
+		f.Time = iso
+		return nil
 	}
 
 	sec, nsec := math.Modf(t)

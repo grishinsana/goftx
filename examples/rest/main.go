@@ -10,7 +10,7 @@ import (
 
 func main() {
 	client := goftx.New(
-		goftx.WithAuth("API-KEY", "API-SECRET"),
+		goftx.WithAuth("API-KEY", "API-SECRET", "API-SUBACCOUNT"),
 		goftx.WithHTTPClient(&http.Client{
 			Timeout: 5 * time.Second,
 		}),

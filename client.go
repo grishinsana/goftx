@@ -22,9 +22,10 @@ const (
 	apiUrl    = "https://ftx.com/api"
 	apiOtcUrl = "https://otc.ftx.com/api"
 
-	keyHeader  = "FTX-KEY"
-	signHeader = "FTX-SIGN"
-	tsHeader   = "FTX-TS"
+	keyHeader        = "FTX-KEY"
+	signHeader       = "FTX-SIGN"
+	tsHeader         = "FTX-TS"
+	subAccountHeader = "FTX-SUBACCOUNT"
 )
 
 type Option func(c *Client)
@@ -35,10 +36,16 @@ func WithHTTPClient(client *http.Client) Option {
 	}
 }
 
-func WithAuth(key, secret string) Option {
+func WithAuth(key, secret string, subAccount ...string) Option {
 	return func(c *Client) {
 		c.apiKey = key
 		c.secret = secret
+		c.Stream.apiKey = key
+		c.Stream.secret = secret
+
+		if len(subAccount) > 0 {
+			c.subAccount = subAccount[0]
+		}
 	}
 }
 
@@ -46,6 +53,7 @@ type Client struct {
 	client         *http.Client
 	apiKey         string
 	secret         string
+	subAccount     string
 	serverTimeDiff time.Duration
 	SubAccounts
 	Markets
@@ -68,11 +76,15 @@ func New(opts ...Option) *Client {
 	client.Account = Account{client: client}
 	client.Orders = Orders{client: client}
 	client.Stream = Stream{
+		apiKey:                 client.apiKey,
+		secret:                 client.secret,
+		subAccount:             client.subAccount,
 		mu:                     &sync.Mutex{},
 		url:                    wsUrl,
 		dialer:                 websocket.DefaultDialer,
 		wsReconnectionCount:    reconnectCount,
 		wsReconnectionInterval: reconnectInterval,
+		wsTimeout:              streamTimeout,
 	}
 
 	return client
@@ -128,6 +140,10 @@ func (c *Client) prepareRequest(request Request) (*http.Request, error) {
 		req.Header.Set(keyHeader, c.apiKey)
 		req.Header.Set(signHeader, c.signture(payload))
 		req.Header.Set(tsHeader, nonce)
+
+		if c.subAccount != "" {
+			req.Header.Set(subAccountHeader, c.subAccount)
+		}
 	}
 
 	for k, v := range request.Headers {

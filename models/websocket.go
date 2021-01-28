@@ -31,10 +31,21 @@ type OrderBookResponse struct {
 	BaseResponse
 }
 
+type FillResponse struct {
+	Fill
+	BaseResponse
+}
+
+type OrderResponse struct {
+	Order
+	BaseResponse
+}
+
 type WSRequest struct {
-	Channel Channel   `json:"channel"`
-	Market  string    `json:"market"`
-	Op      Operation `json:"op"`
+	Channel Channel                `json:"channel"`
+	Market  string                 `json:"market"`
+	Op      Operation              `json:"op"`
+	Args    map[string]interface{} `json:"args"`
 }
 
 type WsResponse struct {
@@ -87,6 +98,38 @@ func (wr *WsResponse) MapToOrderBookResponse() (*OrderBookResponse, error) {
 
 	return &OrderBookResponse{
 		OrderBook: book,
+		BaseResponse: BaseResponse{
+			Type:   wr.Type,
+			Symbol: wr.Market,
+		},
+	}, nil
+}
+
+func (wr *WsResponse) MapToFillResponse() (*FillResponse, error) {
+	fill := Fill{}
+	err := json.Unmarshal(wr.Data, &fill)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return &FillResponse{
+		Fill: fill,
+		BaseResponse: BaseResponse{
+			Type:   wr.Type,
+			Symbol: wr.Market,
+		},
+	}, nil
+}
+
+func (wr *WsResponse) MapToOrderResponse() (*OrderResponse, error) {
+	order := Order{}
+	err := json.Unmarshal(wr.Data, &order)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return &OrderResponse{
+		Order: order,
 		BaseResponse: BaseResponse{
 			Type:   wr.Type,
 			Symbol: wr.Market,
