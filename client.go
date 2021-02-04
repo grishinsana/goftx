@@ -59,6 +59,7 @@ type Client struct {
 	Account
 	Stream
 	Orders
+	Fills
 }
 
 func New(opts ...Option) *Client {
@@ -74,6 +75,7 @@ func New(opts ...Option) *Client {
 	client.Markets = Markets{client: client}
 	client.Account = Account{client: client}
 	client.Orders = Orders{client: client}
+	client.Fills = Fills{client: client}
 	client.Stream = Stream{
 		apiKey:                 client.apiKey,
 		secret:                 client.secret,

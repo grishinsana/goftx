@@ -111,3 +111,10 @@ func (f *FTXTime) UnmarshalJSON(data []byte) error {
 func (f FTXTime) MarshalJSON() ([]byte, error) {
 	return json.Marshal(float64(f.Time.UnixNano()) / float64(1000000000))
 }
+
+type Liquidity string
+
+const (
+	Taker = Liquidity("taker")
+	Maker = Liquidity("maker")
+)

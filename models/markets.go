@@ -82,22 +82,6 @@ type Ticker struct {
 	Time    FTXTime         `json:"time"`
 }
 
-type Fill struct {
-	Fee       decimal.Decimal `json:"fee"`
-	FeeRate   decimal.Decimal `json:"feeRate"`
-	Future    string          `json:"future"`
-	ID        int64           `json:"id"`
-	Liquidity string          `json:"liquidity"`
-	Market    string          `json:"market"`
-	OrderID   int64           `json:"orderId"`
-	TradeID   int64           `json:"tradeId"`
-	Price     decimal.Decimal `json:"price"`
-	Side      string          `json:"side"`
-	Size      decimal.Decimal `json:"size"`
-	Time      FTXTime         `json:"time"`
-	Type      string          `json:"type"`
-}
-
 type GetTradesParams struct {
 	Limit     *int `json:"limit"`
 	StartTime *int `json:"start_time"`
