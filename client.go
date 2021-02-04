@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"strconv"
 	"sync"
 	"time"
@@ -180,21 +179,7 @@ func (c *Client) do(req *http.Request) ([]byte, error) {
 	return response.Result, nil
 }
 
-func (c *Client) prepareQueryParams(params interface{}) map[string]string {
-	result := make(map[string]string)
-
-	val := reflect.ValueOf(params).Elem()
-	for i := 0; i < val.NumField(); i++ {
-		valueField := val.Field(i)
-		typeField := val.Type().Field(i)
-		tag := typeField.Tag
-
-		result[tag.Get("json")] = valueField.String()
-	}
-
-	return result
-}
-
+// nolint:errcheck
 func (c *Client) signture(payload string) string {
 	mac := hmac.New(sha256.New, []byte(c.secret))
 	mac.Write([]byte(payload))

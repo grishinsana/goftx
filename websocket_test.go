@@ -48,7 +48,7 @@ func TestStream_SubscribeToMarkets(t *testing.T) {
 
 	symbol := "ETH/BTC"
 
-	ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
 	data, err := ftx.Stream.SubscribeToMarkets(ctx)
 	require.NoError(t, err)
