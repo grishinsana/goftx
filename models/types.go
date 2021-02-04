@@ -78,8 +78,8 @@ type TriggerOrderType string
 
 const (
 	Stop         = TriggerOrderType("stop")
-	TrailingStop = TriggerOrderType("trailing_stop")
-	TakeProfit   = TriggerOrderType("take_profit")
+	TrailingStop = TriggerOrderType("trailingStop")
+	TakeProfit   = TriggerOrderType("takeProfit")
 )
 
 type FTXTime struct {

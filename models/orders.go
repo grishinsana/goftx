@@ -3,6 +3,8 @@ package models
 import (
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/shopspring/decimal"
 )
 
@@ -67,4 +69,76 @@ type Trigger struct {
 	OrderSize  float64   `json:"orderSize"`
 	OrderID    int64     `json:"orderId"`
 	Time       time.Time `json:"time"`
+}
+
+type GetTriggerOrdersHistoryParams struct {
+	Market    *string           `json:"market"`
+	StartTime *int              `json:"start_time"`
+	EndTime   *int              `json:"end_time"`
+	Side      *Side             `json:"side"`
+	Type      *TriggerOrderType `json:"type"`
+	OrderType *OrderType        `json:"orderType"`
+	Limit     *int              `json:"limit"`
+}
+
+type PlaceOrderPayload struct {
+	Market     string          `json:"market"`
+	Side       Side            `json:"side"`
+	Price      decimal.Decimal `json:"price"`
+	Type       OrderType       `json:"type"`
+	Size       decimal.Decimal `json:"size"`
+	ReduceOnly *bool           `json:"reduceOnly,omitempty"`
+	IOC        *bool           `json:"ioc,omitempty"`
+	PostOnly   *bool           `json:"postOnly,omitempty"`
+	ClientID   *string         `json:"clienId,omitempty"`
+}
+
+type PlaceTriggerOrderPayload struct {
+	Market           string           `json:"market"`
+	Side             Side             `json:"side"`
+	Size             decimal.Decimal  `json:"size"`
+	Type             TriggerOrderType `json:"type"`
+	ReduceOnly       *bool            `json:"reduceOnly,omitempty"`
+	RetryUntilFilled *bool            `json:"retryUntilFilled,omitempty"`
+	TriggerPrice     *decimal.Decimal `json:"triggerPrice,omitempty"`
+	OrderPrice       *decimal.Decimal `json:"orderPrice,omitempty"`
+	TrailValue       *decimal.Decimal `json:"trailValue,omitempty"`
+}
+
+func (t PlaceTriggerOrderPayload) Validate() error {
+	switch t.Type {
+	case Stop:
+		if t.TriggerPrice == nil {
+			return errors.New("triggerPrice is required for stop loss orders")
+		}
+	case TrailingStop:
+		if t.TrailValue == nil {
+			return errors.New("trailValue is required for trailing stop orders")
+		}
+	case TakeProfit:
+		if t.TriggerPrice == nil {
+			return errors.New("triggerPrice is required for take profit orders")
+		}
+	}
+
+	return nil
+}
+
+type ModifyOrderPayload struct {
+	Price    *decimal.Decimal `json:"price,omitempty"`
+	Size     *decimal.Decimal `json:"size,omitempty"`
+	ClientID *string          `json:"clientId,omitempty"`
+}
+
+type ModifyTriggerOrderPayload struct {
+	Size         decimal.Decimal  `json:"size"`
+	TriggerPrice decimal.Decimal  `json:"triggerPrice"`
+	OrderPrice   *decimal.Decimal `json:"orderPrice,omitempty"`
+	TrailValue   *decimal.Decimal `json:"trailValue,omitempty"`
+}
+
+type CancelAllOrdersPayload struct {
+	Market                *string `json:"market,omitempty"`
+	ConditionalOrdersOnly *bool   `json:"conditionalOrdersOnly,omitempty"`
+	LimitOrdersOnly       *bool   `json:"limitOrdersOnly"`
 }

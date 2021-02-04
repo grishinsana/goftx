@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"sync"
 	"time"
 
@@ -95,7 +96,7 @@ func (s *Stream) connect(requests ...models.WSRequest) (*websocket.Conn, error) 
 
 	conn.SetPongHandler(func(msg string) error {
 		s.printf("PONG")
-		conn.SetReadDeadline(time.Now().Add(s.wsTimeout))
+		_ = conn.SetReadDeadline(time.Now().Add(s.wsTimeout))
 		return nil
 	})
 
@@ -174,8 +175,7 @@ func (s *Stream) serve(ctx context.Context, requests ...models.WSRequest) (chan 
 				return
 			case <-time.After((s.wsTimeout * 9) / 10):
 				s.printf("PING")
-				conn.SetWriteDeadline(time.Now().Add(writeWait))
-				if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				if err := conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(writeWait)); err != nil {
 					s.printf("write ping: %v", err)
 				}
 			}
@@ -186,6 +186,7 @@ func (s *Stream) serve(ctx context.Context, requests ...models.WSRequest) (chan 
 }
 
 // Credit to https://github.com/go-numb/go-ftx
+// nolint:errcheck
 func (s *Stream) auth(conn *websocket.Conn) error {
 	if s.apiKey == "" {
 		return nil
@@ -212,14 +213,18 @@ func (s *Stream) auth(conn *websocket.Conn) error {
 }
 
 func (s *Stream) reconnect(ctx context.Context, requests []models.WSRequest) (*websocket.Conn, error) {
+	started := time.Now()
+
 	for i := 1; i < s.wsReconnectionCount; i++ {
 		conn, err := s.connect(requests...)
 		if err == nil {
 			return conn, nil
 		}
 
+		timeout := time.Duration(int64(math.Pow(2, float64(i)))) * time.Second
+
 		select {
-		case <-time.After(s.wsReconnectionInterval):
+		case <-time.After(timeout):
 			conn, err := s.connect(requests...)
 			if err != nil {
 				continue
@@ -231,7 +236,7 @@ func (s *Stream) reconnect(ctx context.Context, requests []models.WSRequest) (*w
 		}
 	}
 
-	return nil, errors.New("reconnection failed")
+	return nil, errors.Errorf("reconnection failed after %v", time.Since(started))
 }
 
 func (s *Stream) subscribe(conn *websocket.Conn, requests []models.WSRequest) error {
@@ -309,6 +314,7 @@ func (s *Stream) SubscribeToOrders(ctx context.Context) (chan *models.OrderRespo
 	return ordersC, nil
 }
 
+// nolint: dupl
 func (s *Stream) SubscribeToTickers(ctx context.Context, symbols ...string) (chan *models.TickerResponse, error) {
 	if len(symbols) == 0 {
 		return nil, errors.New("symbols is missing")
@@ -440,6 +446,7 @@ func (s *Stream) SubscribeToTrades(ctx context.Context, symbols ...string) (chan
 	return tradesC, nil
 }
 
+// nolint: dupl
 func (s *Stream) SubscribeToOrderBooks(ctx context.Context, symbols ...string) (chan *models.OrderBookResponse, error) {
 	if len(symbols) == 0 {
 		return nil, errors.New("symbols is missing")
@@ -467,6 +474,9 @@ func (s *Stream) SubscribeToOrderBooks(ctx context.Context, symbols ...string) (
 			case <-ctx.Done():
 				return
 			case event, ok := <-eventsC:
+				if !ok {
+					return
+				}
 				book, ok := event.(*models.OrderBookResponse)
 				if !ok {
 					return

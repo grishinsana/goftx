@@ -10,7 +10,7 @@ import (
 )
 
 func TestSubAccounts_CRUD(t *testing.T) {
-	godotenv.Load()
+	_ = godotenv.Load()
 
 	ftx := New(
 		WithAuth(os.Getenv("FTX_KEY"), os.Getenv("FTX_SECRET")),
