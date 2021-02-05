@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccount_GetAccountInformation(t *testing.T) {
-	godotenv.Load()
+	_ = godotenv.Load()
 
 	ftx := New(
 		WithAuth(os.Getenv("FTX_KEY"), os.Getenv("FTX_SECRET")),
@@ -25,7 +25,7 @@ func TestAccount_GetAccountInformation(t *testing.T) {
 }
 
 func TestAccount_GetPositions(t *testing.T) {
-	godotenv.Load()
+	_ = godotenv.Load()
 
 	ftx := New(
 		WithAuth(os.Getenv("FTX_KEY"), os.Getenv("FTX_SECRET")),
@@ -39,7 +39,7 @@ func TestAccount_GetPositions(t *testing.T) {
 }
 
 func TestAccount_ChangeAccountLeverage(t *testing.T) {
-	godotenv.Load()
+	_ = godotenv.Load()
 
 	ftx := New(
 		WithAuth(os.Getenv("FTX_KEY"), os.Getenv("FTX_SECRET")),

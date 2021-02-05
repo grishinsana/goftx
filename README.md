@@ -11,12 +11,9 @@ go get github.com/grishinsana/goftx
 > See examples directory and test cases for more examples
 
 ### TODO
-- Private Streams
-- Orders
 - Futures
 - Wallet
 - Converts
-- Fills
 - Funding Payments
 - Leveraged Tokens
 - Options

@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"strconv"
 	"sync"
 	"time"
@@ -22,9 +21,10 @@ const (
 	apiUrl    = "https://ftx.com/api"
 	apiOtcUrl = "https://otc.ftx.com/api"
 
-	keyHeader  = "FTX-KEY"
-	signHeader = "FTX-SIGN"
-	tsHeader   = "FTX-TS"
+	keyHeader        = "FTX-KEY"
+	signHeader       = "FTX-SIGN"
+	tsHeader         = "FTX-TS"
+	subAccountHeader = "FTX-SUBACCOUNT"
 )
 
 type Option func(c *Client)
@@ -35,10 +35,16 @@ func WithHTTPClient(client *http.Client) Option {
 	}
 }
 
-func WithAuth(key, secret string) Option {
+func WithAuth(key, secret string, subAccount ...string) Option {
 	return func(c *Client) {
 		c.apiKey = key
 		c.secret = secret
+		c.Stream.apiKey = key
+		c.Stream.secret = secret
+
+		if len(subAccount) > 0 {
+			c.subAccount = subAccount[0]
+		}
 	}
 }
 
@@ -46,12 +52,17 @@ type Client struct {
 	client         *http.Client
 	apiKey         string
 	secret         string
+	subAccount     string
 	serverTimeDiff time.Duration
 	SubAccounts
 	Markets
 	Account
 	Stream
 	Orders
+	Fills
+	Converts
+	Futures
+	SpotMargin
 }
 
 func New(opts ...Option) *Client {
@@ -67,12 +78,20 @@ func New(opts ...Option) *Client {
 	client.Markets = Markets{client: client}
 	client.Account = Account{client: client}
 	client.Orders = Orders{client: client}
+	client.Fills = Fills{client: client}
+	client.Converts = Converts{client: client}
+	client.Futures = Futures{client: client}
+	client.SpotMargin = SpotMargin{client: client}
 	client.Stream = Stream{
+		apiKey:                 client.apiKey,
+		secret:                 client.secret,
+		subAccount:             client.subAccount,
 		mu:                     &sync.Mutex{},
 		url:                    wsUrl,
 		dialer:                 websocket.DefaultDialer,
 		wsReconnectionCount:    reconnectCount,
 		wsReconnectionInterval: reconnectInterval,
+		wsTimeout:              streamTimeout,
 	}
 
 	return client
@@ -128,6 +147,10 @@ func (c *Client) prepareRequest(request Request) (*http.Request, error) {
 		req.Header.Set(keyHeader, c.apiKey)
 		req.Header.Set(signHeader, c.signture(payload))
 		req.Header.Set(tsHeader, nonce)
+
+		if c.subAccount != "" {
+			req.Header.Set(subAccountHeader, c.subAccount)
+		}
 	}
 
 	for k, v := range request.Headers {
@@ -164,21 +187,7 @@ func (c *Client) do(req *http.Request) ([]byte, error) {
 	return response.Result, nil
 }
 
-func (c *Client) prepareQueryParams(params interface{}) map[string]string {
-	result := make(map[string]string)
-
-	val := reflect.ValueOf(params).Elem()
-	for i := 0; i < val.NumField(); i++ {
-		valueField := val.Field(i)
-		typeField := val.Type().Field(i)
-		tag := typeField.Tag
-
-		result[tag.Get("json")] = valueField.String()
-	}
-
-	return result
-}
-
+// nolint:errcheck
 func (c *Client) signture(payload string) string {
 	mac := hmac.New(sha256.New, []byte(c.secret))
 	mac.Write([]byte(payload))

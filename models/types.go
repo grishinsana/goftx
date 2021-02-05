@@ -25,6 +25,8 @@ const (
 	TradesChannel    = Channel("trades")
 	TickerChannel    = Channel("ticker")
 	MarketsChannel   = Channel("markets")
+	FillsChannel     = Channel("fills")
+	OrdersChannel    = Channel("orders")
 )
 
 type Operation string
@@ -32,6 +34,7 @@ type Operation string
 const (
 	Subscribe   = Operation("subscribe")
 	UnSubscribe = Operation("unsubscribe")
+	Login       = Operation("login")
 )
 
 type ResponseType string
@@ -75,8 +78,8 @@ type TriggerOrderType string
 
 const (
 	Stop         = TriggerOrderType("stop")
-	TrailingStop = TriggerOrderType("trailing_stop")
-	TakeProfit   = TriggerOrderType("take_profit")
+	TrailingStop = TriggerOrderType("trailingStop")
+	TakeProfit   = TriggerOrderType("takeProfit")
 )
 
 type FTXTime struct {
@@ -85,8 +88,19 @@ type FTXTime struct {
 
 func (f *FTXTime) UnmarshalJSON(data []byte) error {
 	var t float64
-	if err := json.Unmarshal(data, &t); err != nil {
-		return err
+	err := json.Unmarshal(data, &t)
+
+	// FTX uses ISO format sometimes so we have to detect and handle that differently.
+	if err != nil {
+		var iso time.Time
+		errIso := json.Unmarshal(data, &iso)
+
+		if errIso != nil {
+			return err
+		}
+
+		f.Time = iso
+		return nil
 	}
 
 	sec, nsec := math.Modf(t)
@@ -97,3 +111,18 @@ func (f *FTXTime) UnmarshalJSON(data []byte) error {
 func (f FTXTime) MarshalJSON() ([]byte, error) {
 	return json.Marshal(float64(f.Time.UnixNano()) / float64(1000000000))
 }
+
+type Liquidity string
+
+const (
+	Taker = Liquidity("taker")
+	Maker = Liquidity("maker")
+)
+
+type FutureType string
+
+const (
+	TypeFuture = FutureType("future")
+	Perpetual  = FutureType("perpetual")
+	Move       = FutureType("move")
+)

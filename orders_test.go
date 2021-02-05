@@ -12,7 +12,7 @@ import (
 )
 
 func TestOrders_GetOpenOrders(t *testing.T) {
-	godotenv.Load()
+	_ = godotenv.Load()
 
 	ftx := New(
 		WithAuth(os.Getenv("FTX_KEY"), os.Getenv("FTX_SECRET")),
@@ -28,7 +28,7 @@ func TestOrders_GetOpenOrders(t *testing.T) {
 }
 
 func TestOrders_GetOrdersHistory(t *testing.T) {
-	godotenv.Load()
+	_ = godotenv.Load()
 
 	ftx := New(
 		WithAuth(os.Getenv("FTX_KEY"), os.Getenv("FTX_SECRET")),
@@ -49,7 +49,7 @@ func TestOrders_GetOrdersHistory(t *testing.T) {
 }
 
 func TestOrders_GetOpenTriggerOrders(t *testing.T) {
-	godotenv.Load()
+	_ = godotenv.Load()
 
 	ftx := New(
 		WithAuth(os.Getenv("FTX_KEY"), os.Getenv("FTX_SECRET")),
@@ -69,7 +69,7 @@ func TestOrders_GetOpenTriggerOrders(t *testing.T) {
 }
 
 func TestOrders_GetOrderTriggers(t *testing.T) {
-	godotenv.Load()
+	_ = godotenv.Load()
 
 	ftx := New(
 		WithAuth(os.Getenv("FTX_KEY"), os.Getenv("FTX_SECRET")),
@@ -84,4 +84,27 @@ func TestOrders_GetOrderTriggers(t *testing.T) {
 	// 400 - Bad Request, orderID doesn't exist
 	assert.Error(t, err)
 	assert.Nil(t, triggers)
+}
+
+func TestOrders_GetTriggerOrdersHistory(t *testing.T) {
+	_ = godotenv.Load()
+
+	ftx := New(
+		WithAuth(os.Getenv("FTX_KEY"), os.Getenv("FTX_SECRET")),
+	)
+	err := ftx.SetServerTimeDiff()
+	require.NoError(t, err)
+
+	market := "ETH/BTC"
+	triggerOrderType := models.Stop
+	orderType := models.LimitOrder
+
+	triggers, err := ftx.Orders.GetTriggerOrdersHistory(&models.GetTriggerOrdersHistoryParams{
+		Market:    &market,
+		Type:      &triggerOrderType,
+		OrderType: &orderType,
+	})
+
+	assert.Nil(t, err)
+	assert.NotNil(t, triggers)
 }

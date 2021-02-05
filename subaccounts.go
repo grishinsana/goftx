@@ -3,9 +3,11 @@ package goftx
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/grishinsana/goftx/models"
-	"github.com/pkg/errors"
 	"net/http"
+
+	"github.com/pkg/errors"
+
+	"github.com/grishinsana/goftx/models"
 )
 
 const (
