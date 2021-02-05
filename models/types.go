@@ -118,3 +118,11 @@ const (
 	Taker = Liquidity("taker")
 	Maker = Liquidity("maker")
 )
+
+type FutureType string
+
+const (
+	TypeFuture = FutureType("future")
+	Perpetual  = FutureType("perpetual")
+	Move       = FutureType("move")
+)
