@@ -38,6 +38,8 @@ type Stream struct {
 	wsReconnectionInterval time.Duration
 	wsTimeout              time.Duration
 	isDebugMode            bool
+	serverTimeDiff         time.Duration
+	authorized             bool
 }
 
 func (s *Stream) SetStreamTimeout(timeout time.Duration) {
@@ -72,17 +74,15 @@ func (s *Stream) printf(format string, v ...interface{}) {
 	if !s.isDebugMode {
 		return
 	}
-	log.Printf(format+"\n", v)
+	if len(v) > 0 {
+		log.Printf(format+"\n", v)
+	} else {
+		log.Printf(format + "\n")
+	}
 }
 
 func (s *Stream) connect(requests ...models.WSRequest) (*websocket.Conn, error) {
 	conn, _, err := s.dialer.Dial(s.url, nil)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	err = s.auth(conn)
-
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -189,11 +189,11 @@ func (s *Stream) serve(ctx context.Context, requests ...models.WSRequest) (chan 
 // nolint:errcheck
 func (s *Stream) auth(conn *websocket.Conn) error {
 	if s.apiKey == "" {
-		return nil
+		return errors.New("credentials is required")
 	}
 
 	s.printf("Authenticate websocket connection")
-	msec := time.Now().UTC().UnixNano() / int64(time.Millisecond)
+	msec := time.Now().UTC().Add(s.serverTimeDiff).UnixNano() / int64(time.Millisecond)
 
 	mac := hmac.New(sha256.New, []byte(s.secret))
 	mac.Write([]byte(fmt.Sprintf("%dwebsocket_login", msec)))
@@ -241,6 +241,14 @@ func (s *Stream) reconnect(ctx context.Context, requests []models.WSRequest) (*w
 
 func (s *Stream) subscribe(conn *websocket.Conn, requests []models.WSRequest) error {
 	for _, req := range requests {
+		if req.IsPrivateChannel() && !s.authorized {
+			err := s.auth(conn)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			s.authorized = true
+		}
+
 		err := conn.WriteJSON(req)
 		if err != nil {
 			return errors.WithStack(err)

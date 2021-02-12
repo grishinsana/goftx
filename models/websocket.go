@@ -48,6 +48,15 @@ type WSRequest struct {
 	Args    map[string]interface{} `json:"args"`
 }
 
+func (wr WSRequest) IsPrivateChannel() bool {
+	switch wr.Channel {
+	case FillsChannel, OrdersChannel:
+		return true
+	default:
+		return true
+	}
+}
+
 type WsResponse struct {
 	Channel Channel         `json:"channel"`
 	Market  string          `json:"market"`
