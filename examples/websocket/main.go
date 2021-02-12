@@ -18,25 +18,27 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	client := goftx.New(
-		goftx.WithAuth("API-KEY", "API-SECRET", "API-SUBACCOUNT"),
+		goftx.WithAuth(os.Getenv("FTX_KEY"), os.Getenv("FTX_SECRET")),
 	)
 
-	client.Stream.SetStreamTimeout(10 * time.Second)
+	client.Stream.SetStreamTimeout(60 * time.Second)
 	client.Stream.SetDebugMode(true)
 
 	// subscribeToTickers(ctx, client)
 
 	// subscribeToMarkets(ctx, client)
 
-	subscribeToFills(ctx, client)
+	//subscribeToFills(ctx, client)
 
-	subscribeToOrders(ctx, client)
+	//subscribeToOrders(ctx, client)
+
+	subscribeToTrades(ctx, client)
 
 	// subscribeToOrderBooks(ctx, client)
 
 	<-sigs
 	cancel()
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 }
 
 func subscribeToTickers(ctx context.Context, client *goftx.Client) {
