@@ -103,6 +103,7 @@ func (c *Client) SetServerTimeDiff() error {
 		return errors.WithStack(err)
 	}
 	c.serverTimeDiff = serverTime.Sub(time.Now().UTC())
+	c.Stream.serverTimeDiff = c.serverTimeDiff
 	return nil
 }
 
