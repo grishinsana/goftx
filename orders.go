@@ -26,14 +26,18 @@ type Orders struct {
 }
 
 func (o *Orders) GetOpenOrders(market string) ([]*models.Order, error) {
-	request, err := o.client.prepareRequest(Request{
+	requestParams := Request{
 		Auth:   true,
 		Method: http.MethodGet,
 		URL:    fmt.Sprintf("%s%s", apiUrl, apiOrders),
-		Params: map[string]string{
+	}
+	if market != "" {
+		requestParams.Params = map[string]string{
 			"market": market,
-		},
-	})
+		}
+	}
+
+	request, err := o.client.prepareRequest(requestParams)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
