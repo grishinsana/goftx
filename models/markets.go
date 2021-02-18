@@ -7,18 +7,26 @@ import (
 )
 
 type Market struct {
-	Name           string          `json:"name"`
-	Underlying     string          `json:"underlying"`
-	BaseCurrency   string          `json:"baseCurrency"`
-	QuoteCurrency  string          `json:"quoteCurrency"`
-	Enabled        bool            `json:"enabled"`
-	Ask            decimal.Decimal `json:"ask"`
-	Bid            decimal.Decimal `json:"bid"`
-	Last           decimal.Decimal `json:"last"`
-	PostOnly       bool            `json:"postOnly"`
-	PriceIncrement decimal.Decimal `json:"priceIncrement"`
-	SizeIncrement  decimal.Decimal `json:"sizeIncrement"`
-	Restricted     bool            `json:"restricted"`
+	Name                  string          `json:"name"`
+	Underlying            string          `json:"underlying"`
+	BaseCurrency          string          `json:"baseCurrency"`
+	QuoteCurrency         string          `json:"quoteCurrency"`
+	Enabled               bool            `json:"enabled"`
+	Ask                   decimal.Decimal `json:"ask"`
+	Bid                   decimal.Decimal `json:"bid"`
+	Last                  decimal.Decimal `json:"last"`
+	PostOnly              bool            `json:"postOnly"`
+	PriceIncrement        decimal.Decimal `json:"priceIncrement"`
+	SizeIncrement         decimal.Decimal `json:"sizeIncrement"`
+	Restricted            bool            `json:"restricted"`
+	MinProvideSize        decimal.Decimal `json:"minProvideSize"`
+	VolumeUSD24h          decimal.Decimal `json:"volumeUsd24h"`
+	Type                  string          `json:"type"`
+	QuoteVolume24h        decimal.Decimal `json:"quoteVolume24h"`
+	HighLeverageFeeExempt bool            `json:"highLeverageFeeExempt"`
+	Change1h              decimal.Decimal `json:"change1h"`
+	Change24h             decimal.Decimal `json:"change24h"`
+	ChangeBod             decimal.Decimal `json:"changeBod"`
 }
 
 // The bids and asks are formatted like so:
