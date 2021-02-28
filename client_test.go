@@ -15,3 +15,10 @@ func TestClient_GetServerTime(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println(serverTime.Sub(time.Now().UTC()))
 }
+
+func TestClient_Ping(t *testing.T) {
+	ftx := New()
+
+	err := ftx.Ping()
+	require.NoError(t, err)
+}

@@ -217,3 +217,30 @@ func (c *Client) GetServerTime() (*time.Time, error) {
 
 	return &result, nil
 }
+
+func (c Client) Ping() error {
+	request, err := c.prepareRequest(Request{
+		Method: http.MethodGet,
+		URL:    apiUrl,
+	})
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	response, err := c.do(request)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	var result bool
+	err = json.Unmarshal(response, &result)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	if !result {
+		return errors.New("service unavailable")
+	}
+
+	return nil
+}
