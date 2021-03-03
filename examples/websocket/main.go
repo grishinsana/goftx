@@ -24,7 +24,7 @@ func main() {
 	client.Stream.SetStreamTimeout(60 * time.Second)
 	client.Stream.SetDebugMode(true)
 
-	// subscribeToTickers(ctx, client)
+	subscribeToTickers(ctx, client)
 
 	// subscribeToMarkets(ctx, client)
 

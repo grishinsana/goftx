@@ -53,7 +53,7 @@ func (wr WSRequest) IsPrivateChannel() bool {
 	case FillsChannel, OrdersChannel:
 		return true
 	default:
-		return true
+		return false
 	}
 }
 
