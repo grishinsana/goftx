@@ -17,3 +17,5 @@
 
 # Enviroment variables
 .env
+
+cmd/*

@@ -195,27 +195,27 @@ func (c *Client) signture(payload string) string {
 	return hex.EncodeToString(mac.Sum(nil))
 }
 
-func (c *Client) GetServerTime() (*time.Time, error) {
+func (c *Client) GetServerTime() (time.Time, error) {
 	request, err := c.prepareRequest(Request{
 		Method: http.MethodGet,
 		URL:    fmt.Sprintf("%s/time", apiOtcUrl),
 	})
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return time.Time{}, errors.WithStack(err)
 	}
 
 	response, err := c.do(request)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return time.Time{}, errors.WithStack(err)
 	}
 
 	var result time.Time
 	err = json.Unmarshal(response, &result)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return time.Time{}, errors.WithStack(err)
 	}
 
-	return &result, nil
+	return result, nil
 }
 
 func (c Client) Ping() error {
