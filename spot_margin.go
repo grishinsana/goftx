@@ -29,7 +29,7 @@ func (s *SpotMargin) GetBorrowRates() ([]*models.BorrowRate, error) {
 	request, err := s.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiBorrowRates),
+		URL:    fmt.Sprintf("%s%s", s.client.apiURL, apiBorrowRates),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -53,7 +53,7 @@ func (s *SpotMargin) GetLendingRates() ([]*models.LendingRate, error) {
 	request, err := s.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiLendingRates),
+		URL:    fmt.Sprintf("%s%s", s.client.apiURL, apiLendingRates),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -77,7 +77,7 @@ func (s *SpotMargin) GetDailyBorrowedAmounts() ([]*models.BorrowSummary, error) 
 	request, err := s.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiBorrowSummary),
+		URL:    fmt.Sprintf("%s%s", s.client.apiURL, apiBorrowSummary),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -105,7 +105,7 @@ func (s *SpotMargin) GetMarketInfo(market string) ([]*models.GetSpotMarginMarket
 	request, err := s.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiMarketInfo),
+		URL:    fmt.Sprintf("%s%s", s.client.apiURL, apiMarketInfo),
 		Params: queryParams,
 	})
 	if err != nil {
@@ -130,7 +130,7 @@ func (s *SpotMargin) GetBorrowHistory() ([]*models.BorrowHistory, error) {
 	request, err := s.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiBorrowHistory),
+		URL:    fmt.Sprintf("%s%s", s.client.apiURL, apiBorrowHistory),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -154,7 +154,7 @@ func (s *SpotMargin) GetLendingHistory() ([]*models.LendingHistory, error) {
 	request, err := s.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiLendingHistory),
+		URL:    fmt.Sprintf("%s%s", s.client.apiURL, apiLendingHistory),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -178,7 +178,7 @@ func (s *SpotMargin) GetLendingOffers() ([]*models.LendingOffer, error) {
 	request, err := s.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiLendingOffers),
+		URL:    fmt.Sprintf("%s%s", s.client.apiURL, apiLendingOffers),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -202,7 +202,7 @@ func (s *SpotMargin) GetLendingInfo() ([]*models.LendingInfo, error) {
 	request, err := s.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiLendingInfo),
+		URL:    fmt.Sprintf("%s%s", s.client.apiURL, apiLendingInfo),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -231,7 +231,7 @@ func (s *SpotMargin) SubmitLendingOffer(payload *models.LendingOfferPayload) err
 	request, err := s.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodPost,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiLendingOffers),
+		URL:    fmt.Sprintf("%s%s", s.client.apiURL, apiLendingOffers),
 		Body:   body,
 	})
 	if err != nil {

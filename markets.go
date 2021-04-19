@@ -24,7 +24,7 @@ type Markets struct {
 func (m *Markets) GetMarkets() ([]*models.Market, error) {
 	request, err := m.client.prepareRequest(Request{
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiGetMarkets),
+		URL:    fmt.Sprintf("%s%s", m.client.apiURL, apiGetMarkets),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -47,7 +47,7 @@ func (m *Markets) GetMarkets() ([]*models.Market, error) {
 func (m *Markets) GetMarketByName(name string) (*models.Market, error) {
 	request, err := m.client.prepareRequest(Request{
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s/%s", apiUrl, apiGetMarkets, name),
+		URL:    fmt.Sprintf("%s%s/%s", m.client.apiURL, apiGetMarkets, name),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -77,7 +77,7 @@ func (m *Markets) GetOrderBook(marketName string, depth *int) (*models.OrderBook
 
 	request, err := m.client.prepareRequest(Request{
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, path),
+		URL:    fmt.Sprintf("%s%s", m.client.apiURL, path),
 		Params: params,
 	})
 	if err != nil {
@@ -107,7 +107,7 @@ func (m *Markets) GetTrades(marketName string, params *models.GetTradesParams) (
 	path := fmt.Sprintf(apiGetTrades, marketName)
 	request, err := m.client.prepareRequest(Request{
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, path),
+		URL:    fmt.Sprintf("%s%s", m.client.apiURL, path),
 		Params: queryParams,
 	})
 	if err != nil {
@@ -137,7 +137,7 @@ func (m *Markets) GetHistoricalPrices(marketName string, params *models.GetHisto
 	path := fmt.Sprintf(apiGetHistoricalPrices, marketName)
 	request, err := m.client.prepareRequest(Request{
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, path),
+		URL:    fmt.Sprintf("%s%s", m.client.apiURL, path),
 		Params: queryParams,
 	})
 	if err != nil {

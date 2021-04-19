@@ -11,9 +11,7 @@ go get github.com/grishinsana/goftx
 > See examples directory and test cases for more examples
 
 ### TODO
-- Futures
 - Wallet
-- Converts
 - Funding Payments
 - Leveraged Tokens
 - Options
@@ -94,6 +92,14 @@ func main() {
     cancel()
     time.Sleep(time.Second)
 }
+```
+
+### FTX US Mode
+If you need to use FTX US than you could set goftx.WithFTXUS option
+```go
+    client := goftx.New(
+		goftx.WithFTXUS(),
+	)
 ```
 
 ### Websocket Debug Mode

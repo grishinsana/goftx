@@ -25,7 +25,7 @@ func (a *Account) GetAccountInformation() (*models.AccountInformation, error) {
 	request, err := a.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiGetAccountInformation),
+		URL:    fmt.Sprintf("%s%s", a.client.apiURL, apiGetAccountInformation),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -49,7 +49,7 @@ func (a *Account) GetPositions() ([]*models.Position, error) {
 	request, err := a.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiGetPositions),
+		URL:    fmt.Sprintf("%s%s", a.client.apiURL, apiGetPositions),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -80,7 +80,7 @@ func (a *Account) ChangeAccountLeverage(leverage decimal.Decimal) error {
 	request, err := a.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodPost,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiPostLeverage),
+		URL:    fmt.Sprintf("%s%s", a.client.apiURL, apiPostLeverage),
 		Body:   body,
 	})
 	if err != nil {

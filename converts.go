@@ -25,7 +25,7 @@ func (c *Converts) CreateQuote(payload *models.CreateQuotePayload) (int64, error
 	request, err := c.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodPost,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiQuotes),
+		URL:    fmt.Sprintf("%s%s", c.client.apiURL, apiQuotes),
 		Body:   body,
 	})
 	if err != nil {
@@ -57,7 +57,7 @@ func (c *Converts) GetQuotes(quoteID int64, market *string) ([]*models.QuoteStat
 	request, err := c.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s/%d", apiUrl, apiQuotes, quoteID),
+		URL:    fmt.Sprintf("%s%s/%d", c.client.apiURL, apiQuotes, quoteID),
 		Params: queryParams,
 	})
 	if err != nil {
@@ -82,7 +82,7 @@ func (c *Converts) AcceptQuote(quoteID int64) error {
 	request, err := c.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodPost,
-		URL:    fmt.Sprintf("%s%s/%d/accept", apiUrl, apiQuotes, quoteID),
+		URL:    fmt.Sprintf("%s%s/%d/accept", c.client.apiURL, apiQuotes, quoteID),
 	})
 	if err != nil {
 		return errors.WithStack(err)

@@ -29,7 +29,7 @@ func (o *Orders) GetOpenOrders(market string) ([]*models.Order, error) {
 	requestParams := Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiOrders),
+		URL:    fmt.Sprintf("%s%s", o.client.apiURL, apiOrders),
 	}
 	if market != "" {
 		requestParams.Params = map[string]string{
@@ -65,7 +65,7 @@ func (o *Orders) GetOrdersHistory(params *models.GetOrdersHistoryParams) ([]*mod
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiGetOrdersHistory),
+		URL:    fmt.Sprintf("%s%s", o.client.apiURL, apiGetOrdersHistory),
 		Params: queryParams,
 	})
 	if err != nil {
@@ -95,7 +95,7 @@ func (o *Orders) GetOpenTriggerOrders(params *models.GetOpenTriggerOrdersParams)
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiTriggerOrders),
+		URL:    fmt.Sprintf("%s%s", o.client.apiURL, apiTriggerOrders),
 		Params: queryParams,
 	})
 	if err != nil {
@@ -120,7 +120,7 @@ func (o *Orders) GetOrderTriggers(orderID int64) ([]*models.Trigger, error) {
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, fmt.Sprintf(apiGetOrderTriggers, orderID)),
+		URL:    fmt.Sprintf("%s%s", o.client.apiURL, fmt.Sprintf(apiGetOrderTriggers, orderID)),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -149,7 +149,7 @@ func (o *Orders) GetTriggerOrdersHistory(params *models.GetTriggerOrdersHistoryP
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiGetTriggerOrdersHistory),
+		URL:    fmt.Sprintf("%s%s", o.client.apiURL, apiGetTriggerOrdersHistory),
 		Params: queryParams,
 	})
 	if err != nil {
@@ -179,7 +179,7 @@ func (o *Orders) PlaceOrder(payload *models.PlaceOrderPayload) (*models.Order, e
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodPost,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiOrders),
+		URL:    fmt.Sprintf("%s%s", o.client.apiURL, apiOrders),
 		Body:   body,
 	})
 	if err != nil {
@@ -214,7 +214,7 @@ func (o *Orders) PlaceTriggerOrder(payload *models.PlaceTriggerOrderPayload) (*m
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodPost,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiTriggerOrders),
+		URL:    fmt.Sprintf("%s%s", o.client.apiURL, apiTriggerOrders),
 		Body:   body,
 	})
 	if err != nil {
@@ -244,7 +244,7 @@ func (o *Orders) ModifyOrder(payload *models.ModifyOrderPayload, orderID int64) 
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodPost,
-		URL:    fmt.Sprintf("%s%s", apiUrl, fmt.Sprintf(apiModifyOrder, orderID)),
+		URL:    fmt.Sprintf("%s%s", o.client.apiURL, fmt.Sprintf(apiModifyOrder, orderID)),
 		Body:   body,
 	})
 	if err != nil {
@@ -274,7 +274,7 @@ func (o *Orders) ModifyOrderByClientID(payload *models.ModifyOrderPayload, clien
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodPost,
-		URL:    fmt.Sprintf("%s%s", apiUrl, fmt.Sprintf(apiModifyOrderByClientID, clientOrderID)),
+		URL:    fmt.Sprintf("%s%s", o.client.apiURL, fmt.Sprintf(apiModifyOrderByClientID, clientOrderID)),
 		Body:   body,
 	})
 	if err != nil {
@@ -304,7 +304,7 @@ func (o *Orders) ModifyTriggerOrder(payload *models.ModifyTriggerOrderPayload, o
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodPost,
-		URL:    fmt.Sprintf("%s%s", apiUrl, fmt.Sprintf(apiModifyTriggerOrder, orderID)),
+		URL:    fmt.Sprintf("%s%s", o.client.apiURL, fmt.Sprintf(apiModifyTriggerOrder, orderID)),
 		Body:   body,
 	})
 	if err != nil {
@@ -329,7 +329,7 @@ func (o *Orders) GetOrder(orderID int64) (*models.Order, error) {
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s/%d", apiUrl, apiOrders, orderID),
+		URL:    fmt.Sprintf("%s%s/%d", o.client.apiURL, apiOrders, orderID),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -353,7 +353,7 @@ func (o *Orders) GetOrderByClientID(clientOrderID int64) (*models.Order, error) 
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s/by_client_id/%d", apiUrl, apiOrders, clientOrderID),
+		URL:    fmt.Sprintf("%s%s/by_client_id/%d", o.client.apiURL, apiOrders, clientOrderID),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -377,7 +377,7 @@ func (o *Orders) CancelOrder(orderID int64) error {
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodDelete,
-		URL:    fmt.Sprintf("%s%s/%d", apiUrl, apiOrders, orderID),
+		URL:    fmt.Sprintf("%s%s/%d", o.client.apiURL, apiOrders, orderID),
 	})
 	if err != nil {
 		return errors.WithStack(err)
@@ -395,7 +395,7 @@ func (o *Orders) CancelOrderByClientID(clientOrderID int64) error {
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodDelete,
-		URL:    fmt.Sprintf("%s%s/by_client_id/%d", apiUrl, apiOrders, clientOrderID),
+		URL:    fmt.Sprintf("%s%s/by_client_id/%d", o.client.apiURL, apiOrders, clientOrderID),
 	})
 	if err != nil {
 		return errors.WithStack(err)
@@ -413,7 +413,7 @@ func (o *Orders) CancelOpenTriggerOrder(triggerOrderID int64) error {
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodDelete,
-		URL:    fmt.Sprintf("%s%s/%d", apiUrl, apiTriggerOrders, triggerOrderID),
+		URL:    fmt.Sprintf("%s%s/%d", o.client.apiURL, apiTriggerOrders, triggerOrderID),
 	})
 	if err != nil {
 		return errors.WithStack(err)
@@ -436,7 +436,7 @@ func (o *Orders) CancelAllOrders(payload *models.CancelAllOrdersPayload) error {
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodDelete,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiOrders),
+		URL:    fmt.Sprintf("%s%s", o.client.apiURL, apiOrders),
 		Body:   body,
 	})
 	if err != nil {

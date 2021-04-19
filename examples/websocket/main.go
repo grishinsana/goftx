@@ -19,6 +19,7 @@ func main() {
 
 	client := goftx.New(
 		goftx.WithAuth(os.Getenv("FTX_KEY"), os.Getenv("FTX_SECRET")),
+		goftx.WithFTXUS(),
 	)
 
 	client.Stream.SetStreamTimeout(60 * time.Second)

@@ -17,8 +17,15 @@ func TestClient_GetServerTime(t *testing.T) {
 }
 
 func TestClient_Ping(t *testing.T) {
-	ftx := New()
+	t.Run("com", func(t *testing.T) {
+		ftx := New(WithFTXUS())
+		err := ftx.Ping()
+		require.NoError(t, err)
+	})
 
-	err := ftx.Ping()
-	require.NoError(t, err)
+	t.Run("us", func(t *testing.T) {
+		ftx := New()
+		err := ftx.Ping()
+		require.NoError(t, err)
+	})
 }

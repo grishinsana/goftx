@@ -18,13 +18,13 @@ import (
 )
 
 const (
-	apiUrl    = "https://ftx.com/api"
-	apiOtcUrl = "https://otc.ftx.com/api"
+	apiUrlFormat = "https://ftx.%s/api"
+	apiOtcUrl    = "https://otc.ftx.com/api"
 
-	keyHeader        = "FTX-KEY"
-	signHeader       = "FTX-SIGN"
-	tsHeader         = "FTX-TS"
-	subAccountHeader = "FTX-SUBACCOUNT"
+	keyHeaderFormat        = "FTX%s-KEY"
+	signHeaderFormat       = "FTX%s-SIGN"
+	tsHeaderFormat         = "FTX%s-TS"
+	subAccountHeaderFormat = "FTX%s-SUBACCOUNT"
 )
 
 type Option func(c *Client)
@@ -32,6 +32,12 @@ type Option func(c *Client)
 func WithHTTPClient(client *http.Client) Option {
 	return func(c *Client) {
 		c.client = client
+	}
+}
+
+func WithFTXUS() Option {
+	return func(c *Client) {
+		c.isFtxUS = true
 	}
 }
 
@@ -54,6 +60,8 @@ type Client struct {
 	secret         string
 	subAccount     string
 	serverTimeDiff time.Duration
+	isFtxUS        bool
+	apiURL         string
 	SubAccounts
 	Markets
 	Account
@@ -74,6 +82,12 @@ func New(opts ...Option) *Client {
 		opt(client)
 	}
 
+	domain := "com"
+	if client.isFtxUS {
+		domain = "us"
+	}
+	client.apiURL = fmt.Sprintf(apiUrlFormat, domain)
+
 	client.SubAccounts = SubAccounts{client: client}
 	client.Markets = Markets{client: client}
 	client.Account = Account{client: client}
@@ -87,7 +101,7 @@ func New(opts ...Option) *Client {
 		secret:                 client.secret,
 		subAccount:             client.subAccount,
 		mu:                     &sync.Mutex{},
-		url:                    wsUrl,
+		url:                    fmt.Sprintf(wsUrlFormat, domain),
 		dialer:                 websocket.DefaultDialer,
 		wsReconnectionCount:    reconnectCount,
 		wsReconnectionInterval: reconnectInterval,
@@ -144,13 +158,18 @@ func (c *Client) prepareRequest(request Request) (*http.Request, error) {
 			payload += string(request.Body)
 		}
 
+		usPrefix := ""
+		if c.isFtxUS {
+			usPrefix = "US"
+		}
+
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set(keyHeader, c.apiKey)
-		req.Header.Set(signHeader, c.signture(payload))
-		req.Header.Set(tsHeader, nonce)
+		req.Header.Set(fmt.Sprintf(keyHeaderFormat, usPrefix), c.apiKey)
+		req.Header.Set(fmt.Sprintf(signHeaderFormat, usPrefix), c.signture(payload))
+		req.Header.Set(fmt.Sprintf(tsHeaderFormat, usPrefix), nonce)
 
 		if c.subAccount != "" {
-			req.Header.Set(subAccountHeader, c.subAccount)
+			req.Header.Set(fmt.Sprintf(subAccountHeaderFormat, usPrefix), c.subAccount)
 		}
 	}
 
@@ -221,7 +240,7 @@ func (c *Client) GetServerTime() (time.Time, error) {
 func (c Client) Ping() error {
 	request, err := c.prepareRequest(Request{
 		Method: http.MethodGet,
-		URL:    apiUrl,
+		URL:    c.apiURL,
 	})
 	if err != nil {
 		return errors.WithStack(err)
