@@ -25,7 +25,7 @@ func (s *SubAccounts) GetSubaccounts() ([]*models.SubAccount, error) {
 	request, err := s.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiSubaccounts),
+		URL:    fmt.Sprintf("%s%s", s.client.apiURL, apiSubaccounts),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -56,7 +56,7 @@ func (s *SubAccounts) CreateSubaccount(nickname string) (*models.SubAccount, err
 	request, err := s.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodPost,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiSubaccounts),
+		URL:    fmt.Sprintf("%s%s", s.client.apiURL, apiSubaccounts),
 		Body:   body,
 	})
 	if err != nil {
@@ -89,7 +89,7 @@ func (s *SubAccounts) ChangeSubaccount(nickname, newNickname string) error {
 	request, err := s.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodPost,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiChangeSubaccountName),
+		URL:    fmt.Sprintf("%s%s", s.client.apiURL, apiChangeSubaccountName),
 		Body:   body,
 	})
 	if err != nil {
@@ -115,7 +115,7 @@ func (s *SubAccounts) DeleteSubaccount(nickname string) error {
 	request, err := s.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodDelete,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiSubaccounts),
+		URL:    fmt.Sprintf("%s%s", s.client.apiURL, apiSubaccounts),
 		Body:   body,
 	})
 	if err != nil {
@@ -134,7 +134,7 @@ func (s *SubAccounts) GetSubaccountBalances(nickname string) ([]*models.Balance,
 	request, err := s.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, fmt.Sprintf(apiGetSubaccountBalances, nickname)),
+		URL:    fmt.Sprintf("%s%s", s.client.apiURL, fmt.Sprintf(apiGetSubaccountBalances, nickname)),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -163,7 +163,7 @@ func (s *SubAccounts) Transfer(payload *models.TransferPayload) (*models.Transfe
 	request, err := s.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodPost,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiTransfer),
+		URL:    fmt.Sprintf("%s%s", s.client.apiURL, apiTransfer),
 		Body:   body,
 	})
 	if err != nil {

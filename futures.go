@@ -26,7 +26,7 @@ type Futures struct {
 func (f *Futures) GetFutures() ([]*models.Future, error) {
 	request, err := f.client.prepareRequest(Request{
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiFutures),
+		URL:    fmt.Sprintf("%s%s", f.client.apiURL, apiFutures),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -49,7 +49,7 @@ func (f *Futures) GetFutures() ([]*models.Future, error) {
 func (f *Futures) GetFuture(name string) (*models.Future, error) {
 	request, err := f.client.prepareRequest(Request{
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s/%s", apiUrl, apiFutures, name),
+		URL:    fmt.Sprintf("%s%s/%s", f.client.apiURL, apiFutures, name),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -72,7 +72,7 @@ func (f *Futures) GetFuture(name string) (*models.Future, error) {
 func (f *Futures) GetFutureStats(name string) (*models.FutureStats, error) {
 	request, err := f.client.prepareRequest(Request{
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s/%s/stats", apiUrl, apiFutures, name),
+		URL:    fmt.Sprintf("%s%s/%s/stats", f.client.apiURL, apiFutures, name),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -100,7 +100,7 @@ func (f *Futures) GetFundingRates(params *models.GetFundingRatesParams) ([]*mode
 
 	request, err := f.client.prepareRequest(Request{
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiFundingRates),
+		URL:    fmt.Sprintf("%s%s", f.client.apiURL, apiFundingRates),
 		Params: queryParams,
 	})
 	if err != nil {
@@ -124,7 +124,7 @@ func (f *Futures) GetFundingRates(params *models.GetFundingRatesParams) ([]*mode
 func (f *Futures) GetIndexWeights(indexName string) (map[string]decimal.Decimal, error) {
 	request, err := f.client.prepareRequest(Request{
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, fmt.Sprintf(apiIndexWeights, indexName)),
+		URL:    fmt.Sprintf("%s%s", f.client.apiURL, fmt.Sprintf(apiIndexWeights, indexName)),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -147,7 +147,7 @@ func (f *Futures) GetIndexWeights(indexName string) (map[string]decimal.Decimal,
 func (f *Futures) GetExpiredFutures() ([]*models.FutureExpired, error) {
 	request, err := f.client.prepareRequest(Request{
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiExpiredFutures),
+		URL:    fmt.Sprintf("%s%s", f.client.apiURL, apiExpiredFutures),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -175,7 +175,7 @@ func (f *Futures) GetHistoricalIndex(market string, params *models.GetHistorical
 
 	request, err := f.client.prepareRequest(Request{
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, fmt.Sprintf(apiIndexCandles, market)),
+		URL:    fmt.Sprintf("%s%s", f.client.apiURL, fmt.Sprintf(apiIndexCandles, market)),
 		Params: queryParams,
 	})
 	if err != nil {

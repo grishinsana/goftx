@@ -25,7 +25,7 @@ func (f *Fills) GetFills(params *models.GetFillsParams) ([]*models.Fill, error) 
 	request, err := f.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s", apiUrl, apiFills),
+		URL:    fmt.Sprintf("%s%s", f.client.apiURL, apiFills),
 		Params: queryParams,
 	})
 	if err != nil {

@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	wsUrl = "wss://ftx.com/ws/"
+	wsUrlFormat = "wss://ftx.%s/ws/"
 
 	writeWait         = time.Second * 10
 	reconnectCount    = int(10)
