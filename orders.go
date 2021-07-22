@@ -391,7 +391,7 @@ func (o *Orders) CancelOrder(orderID int64) error {
 	return nil
 }
 
-func (o *Orders) CancelOrderByClientID(clientOrderID int64) error {
+func (o *Orders) CancelOrderByClientID(clientOrderID string) error {
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodDelete,
