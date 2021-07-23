@@ -349,11 +349,11 @@ func (o *Orders) GetOrder(orderID int64) (*models.Order, error) {
 	return result, nil
 }
 
-func (o *Orders) GetOrderByClientID(clientOrderID int64) (*models.Order, error) {
+func (o *Orders) GetOrderByClientID(clientOrderID string) (*models.Order, error) {
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
-		URL:    fmt.Sprintf("%s%s/by_client_id/%d", o.client.apiURL, apiOrders, clientOrderID),
+		URL:    fmt.Sprintf("%s%s/by_client_id/%s", o.client.apiURL, apiOrders, clientOrderID),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
