@@ -395,7 +395,7 @@ func (o *Orders) CancelOrderByClientID(clientOrderID string) error {
 	request, err := o.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodDelete,
-		URL:    fmt.Sprintf("%s%s/by_client_id/%d", o.client.apiURL, apiOrders, clientOrderID),
+		URL:    fmt.Sprintf("%s%s/by_client_id/%s", o.client.apiURL, apiOrders, clientOrderID),
 	})
 	if err != nil {
 		return errors.WithStack(err)
