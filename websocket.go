@@ -151,6 +151,14 @@ func (s *Stream) serve(ctx context.Context, requests ...models.WSRequest) (chan 
 					response, err = message.MapToFillResponse()
 				case models.MarketsChannel:
 					response = message.Data
+				default:
+					s.printf("unknown channel: %v", message.Channel)
+					continue
+				}
+
+				if err != nil {
+					s.printf("map response err: %v", err)
+					continue
 				}
 
 				eventsC <- response
@@ -307,10 +315,12 @@ func (s *Stream) SubscribeToOrders(ctx context.Context) (chan *models.OrderRespo
 				return
 			case event, ok := <-eventsC:
 				if !ok {
+					s.printf("read from chan not ok")
 					return
 				}
 				order, ok := event.(*models.OrderResponse)
 				if !ok {
+					s.printf("resp is not order response: %T", event)
 					return
 				}
 				ordersC <- order
