@@ -39,7 +39,6 @@ type Stream struct {
 	wsTimeout              time.Duration
 	isDebugMode            bool
 	serverTimeDiff         time.Duration
-	authorized             bool
 }
 
 func (s *Stream) SetStreamTimeout(timeout time.Duration) {
@@ -254,13 +253,14 @@ func (s *Stream) reconnect(ctx context.Context, requests []models.WSRequest) (*w
 }
 
 func (s *Stream) subscribe(conn *websocket.Conn, requests []models.WSRequest) error {
+	authorized := false
 	for _, req := range requests {
-		if req.IsPrivateChannel() && !s.authorized {
+		if req.IsPrivateChannel() && !authorized {
 			err := s.auth(conn)
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			s.authorized = true
+			authorized = true
 		}
 
 		err := conn.WriteJSON(req)
