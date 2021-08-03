@@ -109,24 +109,30 @@ func (s *Stream) serve(ctx context.Context, requests ...models.WSRequest) (chan 
 		return nil, errors.WithStack(err)
 	}
 
+	ftxChannel := models.Channel("")
+	if len(requests) > 0 {
+		ftxChannel = requests[0].Channel
+	}
+
 	doneC := make(chan struct{})
 	eventsC := make(chan interface{}, 1)
 
 	go func() {
 		go func() {
 			defer close(doneC)
+			defer close(eventsC)
 
 			for {
 				message := &models.WsResponse{}
 				err = conn.ReadJSON(&message)
 				if err != nil {
-					s.printf("read msg: %v", err)
+					s.printf("channel %v read msg: %v", ftxChannel, err)
 					if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
 						return
 					}
 					conn, err = s.reconnect(ctx, requests)
 					if err != nil {
-						s.printf("reconnect: %+v", err)
+						s.printf("channel %v reconnect: %+v", ftxChannel, err)
 						return
 					}
 					continue
@@ -152,12 +158,12 @@ func (s *Stream) serve(ctx context.Context, requests ...models.WSRequest) (chan 
 				case models.MarketsChannel:
 					response = message.Data
 				default:
-					s.printf("unknown channel: %v", message.Channel)
+					s.printf("channel %v unknown resp channel: %v", ftxChannel, message.Channel)
 					continue
 				}
 
 				if err != nil {
-					s.printf("map response err: %v", err)
+					s.printf("channel %v map response err: %v", ftxChannel, err)
 					continue
 				}
 
