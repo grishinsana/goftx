@@ -75,7 +75,7 @@ func (s *Stream) printf(format string, v ...interface{}) {
 		return
 	}
 	if len(v) > 0 {
-		log.Printf(format+"\n", v)
+		log.Printf(format+"\n", v...)
 	} else {
 		log.Printf(format + "\n")
 	}
