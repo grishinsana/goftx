@@ -36,4 +36,5 @@ type Position struct {
 	Size                         decimal.Decimal `json:"size"`
 	UnrealizedPnl                decimal.Decimal `json:"unrealizedPnl"`
 	CollateralUsed               decimal.Decimal `json:"collateralUsed"`
+	RecentAverageOpenPrice       decimal.Decimal `json:"recentAverageOpenPrice"`
 }

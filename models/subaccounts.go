@@ -14,9 +14,12 @@ type SubAccount struct {
 }
 
 type Balance struct {
-	Coin  string          `json:"coin"`
-	Free  decimal.Decimal `json:"free"`
-	Total decimal.Decimal `json:"total"`
+	Coin                   string          `json:"coin"`
+	Free                   decimal.Decimal `json:"free"`
+	Total                  decimal.Decimal `json:"total"`
+	SpotBorrow             decimal.Decimal `json:"spotBorrow"`
+	USDValue               decimal.Decimal `json:"usdValue"`
+	AvailableWithoutBorrow decimal.Decimal `json:"availableWithoutBorrow"`
 }
 
 type TransferPayload struct {
