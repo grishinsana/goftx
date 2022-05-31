@@ -48,17 +48,11 @@ func (c *Converts) CreateQuote(payload *models.CreateQuotePayload) (int64, error
 	return result.QuoteId, nil
 }
 
-func (c *Converts) GetQuotes(quoteID int64, market *string) ([]*models.QuoteStatus, error) {
-	queryParams := make(map[string]string)
-	if market != nil {
-		queryParams["market"] = *market
-	}
-
+func (c *Converts) GetQuote(quoteID int64) (*models.QuoteStatus, error) {
 	request, err := c.client.prepareRequest(Request{
 		Auth:   true,
 		Method: http.MethodGet,
 		URL:    fmt.Sprintf("%s%s/%d", c.client.apiURL, apiQuotes, quoteID),
-		Params: queryParams,
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -69,13 +63,13 @@ func (c *Converts) GetQuotes(quoteID int64, market *string) ([]*models.QuoteStat
 		return nil, errors.WithStack(err)
 	}
 
-	var result []*models.QuoteStatus
+	var result models.QuoteStatus
 	err = json.Unmarshal(response, &result)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	return result, nil
+	return &result, nil
 }
 
 func (c *Converts) AcceptQuote(quoteID int64) error {
