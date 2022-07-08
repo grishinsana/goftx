@@ -39,7 +39,6 @@ type Stream struct {
 	wsTimeout              time.Duration
 	isDebugMode            bool
 	serverTimeDiff         time.Duration
-	authorized             bool
 }
 
 func (s *Stream) SetStreamTimeout(timeout time.Duration) {
@@ -75,7 +74,7 @@ func (s *Stream) printf(format string, v ...interface{}) {
 		return
 	}
 	if len(v) > 0 {
-		log.Printf(format+"\n", v)
+		log.Printf(format+"\n", v...)
 	} else {
 		log.Printf(format + "\n")
 	}
@@ -109,24 +108,30 @@ func (s *Stream) serve(ctx context.Context, requests ...models.WSRequest) (chan 
 		return nil, errors.WithStack(err)
 	}
 
+	ftxChannel := models.Channel("")
+	if len(requests) > 0 {
+		ftxChannel = requests[0].Channel
+	}
+
 	doneC := make(chan struct{})
 	eventsC := make(chan interface{}, 1)
 
 	go func() {
 		go func() {
 			defer close(doneC)
+			defer close(eventsC)
 
 			for {
 				message := &models.WsResponse{}
 				err = conn.ReadJSON(&message)
 				if err != nil {
-					s.printf("read msg: %v", err)
+					s.printf("channel %v read msg: %v", ftxChannel, err)
 					if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
 						return
 					}
 					conn, err = s.reconnect(ctx, requests)
 					if err != nil {
-						s.printf("reconnect: %+v", err)
+						s.printf("channel %v reconnect: %+v", ftxChannel, err)
 						return
 					}
 					continue
@@ -151,6 +156,14 @@ func (s *Stream) serve(ctx context.Context, requests ...models.WSRequest) (chan 
 					response, err = message.MapToFillResponse()
 				case models.MarketsChannel:
 					response = message.Data
+				default:
+					s.printf("channel %v unknown resp channel: %v", ftxChannel, message.Channel)
+					continue
+				}
+
+				if err != nil {
+					s.printf("channel %v map response err: %v", ftxChannel, err)
+					continue
 				}
 
 				eventsC <- response
@@ -240,13 +253,14 @@ func (s *Stream) reconnect(ctx context.Context, requests []models.WSRequest) (*w
 }
 
 func (s *Stream) subscribe(conn *websocket.Conn, requests []models.WSRequest) error {
+	authorized := false
 	for _, req := range requests {
-		if req.IsPrivateChannel() && !s.authorized {
+		if req.IsPrivateChannel() && !authorized {
 			err := s.auth(conn)
 			if err != nil {
 				return errors.WithStack(err)
 			}
-			s.authorized = true
+			authorized = true
 		}
 
 		err := conn.WriteJSON(req)
@@ -307,10 +321,12 @@ func (s *Stream) SubscribeToOrders(ctx context.Context) (chan *models.OrderRespo
 				return
 			case event, ok := <-eventsC:
 				if !ok {
+					s.printf("read from chan not ok")
 					return
 				}
 				order, ok := event.(*models.OrderResponse)
 				if !ok {
+					s.printf("resp is not order response: %T", event)
 					return
 				}
 				ordersC <- order
