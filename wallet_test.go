@@ -22,8 +22,11 @@ func TestWallet_GetBalances(t *testing.T) {
 
 	balances, err := ftx.GetBalances()
 	require.Nil(t, err)
-	t.Logf("%+v", balances)
 	require.NotNil(t, balances)
+	for _, balance := range balances {
+		t.Logf("%+v", *balance)
+		require.NotNil(t, balance)
+	}
 }
 
 func TestWallet_Withdraw(t *testing.T) {
